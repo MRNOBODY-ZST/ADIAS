@@ -201,7 +201,14 @@ def stellar_locate_enhanced(
             continue
 
         # 检查是否溢出
-        overflow = np.any(original_values >= np.iinfo(fits_image.dtype).max)
+        if np.issubdtype(fits_image.dtype, np.integer):
+            # 对于整数类型，检查是否达到最大值
+            overflow = np.any(original_values >= np.iinfo(fits_image.dtype).max)
+        else:
+            # 对于浮点数类型，使用一个合理的阈值来判断溢出
+            # 通常CCD图像的饱和值在40000-65000之间
+            saturation_threshold = 60000.0
+            overflow = np.any(original_values >= saturation_threshold)
 
         # 使用指定方法计算质心
         weights = pixel_values ** pos_method
